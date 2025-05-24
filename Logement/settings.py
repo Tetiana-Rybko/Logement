@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'bookings',
     'reviews',
     'search',
+    'belledemeure',
 
     'users.apps.UsersConfig'
 ]
