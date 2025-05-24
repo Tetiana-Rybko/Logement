@@ -49,7 +49,9 @@ INSTALLED_APPS = [
     'search',
     'belledemeure',
 
-    'users.apps.UsersConfig'
+    'users.apps.UsersConfig',
+    'drf_yasg'
+
 ]
 
 MIDDLEWARE = [
