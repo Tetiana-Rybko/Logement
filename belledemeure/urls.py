@@ -4,7 +4,7 @@ from .views import  home,PropertyViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'properties', PropertyViewSet,basename='properties')
+router.register(r'properties', PropertyViewSet,basename='property')
 
 
 
