@@ -12,5 +12,6 @@ User = get_user_model()
 def user_created_signal(sender, instance, created, **kwargs):
     if created:
         print(f'User {instance.username} created!')
+        Profile.objects.update_or_create(user=instance)
         if instance.email:
             send_welcome_email(instance.email,instance.username)
