@@ -3,6 +3,12 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+class Amenity(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 class Property(models.Model):
     PROPERTY_TYPE_CHOICES = [
         ('sale', 'For Sale'),
