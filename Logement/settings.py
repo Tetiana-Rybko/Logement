@@ -48,9 +48,10 @@ INSTALLED_APPS = [
     'reviews',
     'search',
     'belledemeure',
+    'django_filters',
 
     'users.apps.UsersConfig',
-    'drf_yasg'
+    'drf_yasg',
 
 ]
 
@@ -98,8 +99,8 @@ DATABASES = {
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3307'),
+        'HOST': config('DB_HOST', default='db'),
+        'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {'init_command': 'SET sql_mode="STRICT_TRANS_TABLES"'},
     }
 }
@@ -132,6 +133,9 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
+    ],
+    'DEFAULT_FILTER_BACKEND':[
+        'django_filters.rest_framework.DjangoFilterBackend'
     ]
 }
 
@@ -162,3 +166,44 @@ AUTH_USER_MODEL = 'users.User'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} [{levelname}] {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'WARNING',  # ⚠️ Только важные сообщения от Django
+            'propagate': False,
+        },
+        'rentals': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'bookings': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # добавь другие свои приложения, если хочешь
+    }
+}
