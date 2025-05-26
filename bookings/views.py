@@ -3,13 +3,17 @@ from bookings.models import Booking
 from bookings.serializers import BookingSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 import logging
+from rest_framework.pagination import PageNumberPagination
 
 logger = logging.getLogger(__name__)
 
+class BookingPagination(PageNumberPagination):
+    page_size = 5
 
 class BookingListCreateView(generics.ListCreateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = BookingPagination
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'property__title', 'start_date']
@@ -53,3 +57,4 @@ class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Booking.objects.all()
         logger.debug(f"Regular user [{user}] requested own booking details")
         return Booking.objects.filter(user=user)
+
