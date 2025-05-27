@@ -44,7 +44,7 @@ def create_landlords(n=5):
     return landlords
 
 def create_properties(landlords, amenities):
-    print("Creating properties...")
+    print("Creating rental properties...")
 
     districts = ["Innenstadt", "Heiligkreuz", "Nordviertel", "Südviertel", "Pfaffendorf"]
     nearby_places = ["Supermarket", "School", "Park", "Train Station", "Hospital"]
@@ -53,41 +53,21 @@ def create_properties(landlords, amenities):
     for landlord in landlords:
 
         for _ in range(random.randint(3, 5)):
-            is_for_sale = random.choice([True, False])
-            district = random.choice(districts)
 
-            if is_for_sale:
-                prop = Property.objects.create(
-                    owner=landlord,
-                    title=fake.sentence(nb_words=5),
-                    description=fake.paragraph(nb_sentences=3),
-                    address=fake.street_address() + ", Trier",
-                    price=round(random.uniform(100000, 1000000), 2),
-                    property_type='sale',
-                    square_meters=random.randint(50, 200),
-                    floor=random.randint(1, 10),
-                    year_built=random.randint(1950, 2023),
-                    nearby_places=", ".join(random.sample(nearby_places, 2)),
-                    transport=", ".join(random.sample(transport, 2)),
-                    has_installment=random.choice([True, False]),
-                    has_mortgage=random.choice([True, False]),
-                    is_available=True,
-                )
-            else:
-                prop = Property.objects.create(
-                    owner=landlord,
-                    title=fake.sentence(nb_words=5),
-                    description=fake.paragraph(nb_sentences=3),
-                    address=fake.street_address() + ", Trier",
-                    price_per_night=round(random.uniform(30, 200), 2),
-                    property_type='rent',
-                    has_furniture=random.choice([True, False]),
-                    has_appliances=random.choice([True, False]),
-                    has_wifi=random.choice([True, False]),
-                    has_parking=random.choice([True, False]),
-                    transport=", ".join(random.sample(transport, 2)),
-                    is_available=True,
-                )
+            prop = Property.objects.create(
+                owner=landlord,
+                title=fake.sentence(nb_words=5),
+                description=fake.paragraph(nb_sentences=3),
+                address=fake.street_address() + ", Trier",
+                price_per_night=round(random.uniform(30, 200), 2),
+                property_type='rent',
+                has_furniture=random.choice([True, False]),
+                has_appliances=random.choice([True, False]),
+                has_wifi=random.choice([True, False]),
+                has_parking=random.choice([True, False]),
+                transport=", ".join(random.sample(transport, 2)),
+                is_available=True,
+            )
 
             prop.amenities.set(random.sample(amenities, random.randint(1, len(amenities))))
             prop.save()
