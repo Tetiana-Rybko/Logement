@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .serializers import UserReqisterSerializer
+from .serializers import UserDetailSerializer,UserRegisterSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
 from rest_framework.views import APIView
@@ -16,15 +16,18 @@ class HelloUserView(APIView):
 
 
 class UserRegisterView(APIView):
-    serializer_class = UserReqisterSerializer
+    serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = UserReqisterSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request):
+        serializer = UserDetailSerializer(request.user)
+        return Response(serializer.data)
