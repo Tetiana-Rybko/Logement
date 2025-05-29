@@ -4,6 +4,10 @@ from bookings.serializers import BookingSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 import logging
 from rest_framework.pagination import PageNumberPagination
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,20 +34,34 @@ class BookingListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
-        start_date = serializer.validated_data['start_date']
-        end_date = serializer.validated_data['end_date']
-        property_obj = serializer.validated_data['property']
-
-        if Booking.objects.filter(
-            property=property_obj,
-            end_date__gte=start_date,
-            start_date__lte=end_date
-        ).exists():
-            logger.warning(f"User [{user}] tried to book an unavailable period for property [{property_obj}]")
-            raise serializers.ValidationError("This property is already booked for the selected dates.")
-
         booking = serializer.save(user=user)
         logger.info(f"User [{user}] successfully created booking ID {booking.id}")
+
+    @swagger_auto_schema(
+        operation_description="Get list of bookings. Staff sees all, regular user sees only own.",
+        manual_parameters=[
+            openapi.Parameter('status', openapi.IN_QUERY, description="Filter by status", type=openapi.TYPE_STRING),
+            openapi.Parameter('property__title', openapi.IN_QUERY, description="Filter by property title",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="Filter by start date",
+                              type=openapi.TYPE_STRING, format='date'),
+            openapi.Parameter('search', openapi.IN_QUERY, description="Search by property title",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('ordering', openapi.IN_QUERY, description="Ordering by", type=openapi.TYPE_STRING),
+            openapi.Parameter('page', openapi.IN_QUERY, description="Page number", type=openapi.TYPE_INTEGER),
+        ],
+        responses={200: BookingSerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="\nCreate a new booking (with date validation)",
+        request_body=BookingSerializer,
+        responses={201: BookingSerializer, 400: "Bad Request"}
+    )
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
 
 class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -57,4 +75,34 @@ class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Booking.objects.all()
         logger.debug(f"Regular user [{user}] requested own booking details")
         return Booking.objects.filter(user=user)
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a single booking. Staff sees all, user sees only own.",
+        responses={200: BookingSerializer, 404: "Not Found"}
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Update a booking.",
+        request_body=BookingSerializer,
+        responses={200: BookingSerializer, 400: "Bad Request", 404: "Not Found"}
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Partially update a booking.",
+        request_body=BookingSerializer,
+        responses={200: BookingSerializer, 400: "Bad Request", 404: "Not Found"}
+    )
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Delete a booking.",
+        responses={204: "No Content", 404: "Not Found"}
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
