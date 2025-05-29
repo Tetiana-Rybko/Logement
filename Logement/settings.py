@@ -42,8 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
 
-
-    'rentals',
     'bookings',
     'reviews',
     'search',
@@ -191,7 +189,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['file', 'console'],
-            'level': 'WARNING',  # ⚠️ Только важные сообщения от Django
+            'level': 'WARNING',
             'propagate': False,
         },
         'rentals': {
@@ -204,6 +202,6 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        # добавь другие свои приложения, если хочешь
+
     }
 }
