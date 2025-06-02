@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
+import django.db.backends.mysql.base as mysql_base
+print("MySQL driver in use:", mysql_base.Database.__name__)
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -46,11 +48,11 @@ INSTALLED_APPS = [
     'reviews',
     'search',
     'belledemeure',
-    'django_filters',
-
     'users.apps.UsersConfig',
-    'drf_yasg',
 
+    'django_filters',
+    'drf_yasg',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -61,6 +63,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -124,17 +129,20 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated'
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
     ],
-    'DEFAULT_FILTER_BACKEND':[
-        'django_filters.rest_framework.DjangoFilterBackend'
+    'DEFAULT_FILTER_BACKENDS':[
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
     ]
+
 }
 
 
@@ -205,3 +213,15 @@ LOGGING = {
 
     }
 }
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': "JWT Authorization header using the Bearer scheme. Example: 'Bearer <your_token>'",
+        }
+    },
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
