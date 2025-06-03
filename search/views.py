@@ -1,53 +1,46 @@
-# search/views.py
 from rest_framework.generics import ListAPIView
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+
 from belledemeure.models import Property
 from belledemeure.serializers import PropertySerializer
-from django.db.models import Q
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from .models import SearchQuery
+from .serializers import SearchQuerySerializer
 
 
 class PropertySearchView(ListAPIView):
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
 
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+
+    search_fields = ['title', 'description']
+    ordering_fields = ['price_per_night', 'created_at']
+
+    filterset_fields = {
+        'price_per_night': ['gte', 'lte'],
+        'rooms': ['gte', 'lte'],
+        'address': ['icontains'],
+        'property_type': ['exact'],
+    }
+
+    def list(self, request, *args, **kwargs):
+        user = request.user if request.user.is_authenticated else None
+
+        query_text = request.query_params.get("search") or request.query_params.get("q") or ""
+
+        if user and query_text:
+            SearchQuery.objects.create(user=user, query=query_text)
+
+        return super().list(request, *args, **kwargs)
+
+
+
+class SearchQueryHistoryView(ListAPIView):
+    serializer_class = SearchQuerySerializer
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
-        queryset = super().get_queryset()
-
-
-        keyword = self.request.query_params.get("q")
-        if keyword:
-            queryset = queryset.filter(
-                Q(title__icontains=keyword) |
-                Q(description__icontains=keyword)
-            )
-
-
-        min_price = self.request.query_params.get("min_price")
-        max_price = self.request.query_params.get("max_price")
-        if min_price:
-            queryset = queryset.filter(price__gte=min_price)
-        if max_price:
-            queryset = queryset.filter(price__lte=max_price)
-
-        location = self.request.query_params.get("location")
-        if location:
-            queryset = queryset.filter(location__icontains=location)
-
-        rooms_min = self.request.query_params.get("rooms_min")
-        rooms_max = self.request.query_params.get("rooms_max")
-        if rooms_min:
-            queryset = queryset.filter(rooms__gte=rooms_min)
-        if rooms_max:
-            queryset = queryset.filter(rooms__lte=rooms_max)
-
-        housing_type = self.request.query_params.get("type")
-        if housing_type:
-            queryset = queryset.filter(housing_type__iexact=housing_type)
-
-        ordering = self.request.query_params.get("ordering")
-        if ordering:
-            queryset = queryset.order_by(ordering)
-
-        return queryset
-
-
-
+        return SearchQuery.objects.filter(user=self.request.user).order_by('-timestamp')
